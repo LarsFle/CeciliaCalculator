@@ -1,0 +1,195 @@
+<head>
+<title>Cecilia Garden Calculator</title>
+</head>
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/xrange.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/modules/accessibility.js"></script>
+<style>
+#container {
+    height: 300px;
+}
+
+.highcharts-figure,
+.highcharts-data-table table {
+    min-width: 320px;
+    max-width: 800px;
+    margin: 1em auto;
+}
+
+.highcharts-data-table table {
+    font-family: Verdana, sans-serif;
+    border-collapse: collapse;
+    border: 1px solid #ebebeb;
+    margin: 10px auto;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+}
+
+.highcharts-data-table caption {
+    padding: 1em 0;
+    font-size: 1.2em;
+    color: #555;
+}
+
+.highcharts-data-table th {
+    font-weight: 600;
+    padding: 0.5em;
+}
+
+.highcharts-data-table td,
+.highcharts-data-table th,
+.highcharts-data-table caption {
+    padding: 0.5em;
+}
+
+.highcharts-data-table thead tr,
+.highcharts-data-table tr:nth-child(even) {
+    background: #f8f8f8;
+}
+
+.highcharts-data-table tr:hover {
+    background: #f1f7ff;
+}
+
+table tr td:first-of-type{
+	text-align:right;
+}
+table {
+margin: 0 auto;
+}
+body {
+width:720px;
+margin:0 auto;
+}
+</style>
+<body>
+<figure class="highcharts-figure">
+    <div id="container"></div>
+    <p class="highcharts-description">
+    </p>
+</figure>
+<table>
+<tr>
+<td><label for="main_cd">Main DPS Skill CD:</label></td><td><span id="main_cd_val"></span></td>
+<td><input type="range" min="1" max="30" step="1" id="main_cd" value="16" onchange="change(this)"></td>
+</tr>
+<tr>
+<td><label for="main_duration">Main DPS Skill Duration:</label></td><td><span id="main_duration_val"></span></td>
+<td><input type="range" min="1" max="30" step="1" id="main_duration" value="9" onchange="change(this)"></td>
+</tr>
+<tr>
+<td><label for="input_delay">Input Delay (because no one plays perfect):</label></td><td><span id="input_delay_val"></span></td>
+<td><input type="range" min="0" max="3" step="0.1" id="input_delay" value='0.5' onchange="change(this)"></td>
+</tr>
+<tr>
+<td><label for="input_offset">Precast Time:</label></td><td><span id="input_offset_val"></span></td>
+<td><input type="range" min="0" max="3" step="0.1" id="input_offset" value="1" onchange="change(this)" onload="reload();"></td>
+</tr>
+<tr>
+<td colspan="2">Made by Larame</td>
+</tr>
+</table>
+</body>
+<script>
+const baseChart = {
+    chart: {
+        type: 'xrange'
+    },
+	legend: {
+		enabled: false
+	},
+    title: {
+        text: 'Cecillia Garden Debuff (Tiara + Electro Resonance)'
+    },
+    xAxis: {
+        type: 'linear',
+		tickInterval:5,
+		labels: {
+			format: "{text}s"
+		}
+    },
+    yAxis: {
+        title: {
+            text: ''
+        },
+        categories: ['Water Debuff (Main DPS) 11s', 'Main DPS', 'Water Debuff (Off DPS) 18s'],
+        reversed: true
+    },
+    series: [{
+        name: 'Tiara + Resonance',
+        // pointPadding: 0,
+        // groupPadding: 0,
+        borderColor: 'gray',
+        pointWidth: 20,
+        data: [{
+            x: 2.5,
+            x2: 14,
+            y: 0
+        }, {
+            x: 32.5,
+            x2: 44,
+            y: 0
+        }, {
+            x: 62.5,
+            x2: 74,
+            y: 0
+        },{
+            x: 2.5,
+            x2: 20.5,
+            y: 2
+        }, {
+            x: 32.5,
+            x2: 50.5,
+            y: 2
+        }, {
+            x: 62.5,
+            x2: 80.5,
+            y: 2
+        }],
+        dataLabels: {
+            enabled: false
+        }
+    }]
+
+}
+
+function change(object)
+{
+	document.getElementById(object.id + "_val").innerHTML = object.value;
+	reload();
+}
+function reload()
+{
+	let chart = JSON.parse(JSON.stringify(baseChart));
+	let mcd = parseInt(document.getElementById("main_cd").value);
+	let mdr = parseInt(document.getElementById("main_duration").value);
+	let wait = parseFloat(document.getElementById("input_delay").value);
+	let os = parseFloat(document.getElementById("input_offset").value);
+	for (var i=0; i < 6; i++)
+	{
+		chart.series[0].data.push({
+			x: i*mcd + i*wait - os,
+			x2: i*mcd + i*wait - os + mcd,
+			y: 1,
+			partialFill: {
+				amount: 1-mdr/mcd
+			}
+		});
+	}
+	hc.update(chart, true);
+	//hc.redraw();
+}
+function init()
+{
+	document.getElementById("main_cd_val").innerHTML = parseInt(document.getElementById("main_cd").value);
+	document.getElementById("main_duration_val").innerHTML = parseInt(document.getElementById("main_duration").value);
+	document.getElementById("input_delay_val").innerHTML = parseFloat(document.getElementById("input_delay").value);
+	document.getElementById("input_offset_val").innerHTML = parseFloat(document.getElementById("input_offset").value);
+	reload();
+}
+var hc = Highcharts.chart('container', JSON.parse(JSON.stringify(baseChart)));
+init()
+</script>
